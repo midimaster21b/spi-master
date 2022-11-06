@@ -59,7 +59,7 @@ architecture rtl of spi_master_top is
 
 begin
 
-  SP1 : entity work.spi_master_state(rtl)
+  SP1 : entity work.spi_master(rtl)
     generic map (
       OUTPUT_BUFFER_SIZE => 256,
       INPUT_BUFFER_SIZE  => 1,

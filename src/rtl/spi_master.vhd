@@ -21,7 +21,7 @@
 library ieee;
 use ieee.numeric_std.all;
 
-entity spi_master_state is
+entity spi_master is
   generic (
     Output_Buffer_Size : Integer   := 256;
     Input_Buffer_Size  : Integer   := 1;
@@ -60,9 +60,9 @@ entity spi_master_state is
     rx_ready_flag      : out STD_LOGIC; -- := '0';
     busy               : out STD_LOGIC  -- := '1'
     );
-end SPI_Master_State;
+end spi_master;
 
-architecture rtl of SPI_Master_State is
+architecture rtl of spi_master is
 
   signal byte_counter       : STD_LOGIC_VECTOR (15 downto 0) := x"0000";
   signal byte_rx_count      : STD_LOGIC_VECTOR (15 downto 0);

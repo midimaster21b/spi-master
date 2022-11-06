@@ -1,5 +1,5 @@
 CAPI=2:
-name: midimaster21b:comm:spi:0.1.0
+name: midimaster21b:comm:spi-master:0.1.0
 description: A simple SPI master implementation
 
 filesets:

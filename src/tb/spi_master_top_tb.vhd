@@ -28,65 +28,24 @@ entity SPI_master_top_tb is
 end SPI_master_top_tb;
 
 architecture Behavioral of SPI_master_top_tb is
-
-  component SPI_master_top
-    Port (
-      -- Block necessities
-      clk : in STD_LOGIC;
-      btn : in STD_LOGIC;
-
-      -- SPI lines
-      spi_clk : inout STD_LOGIC; -- FOR DEBUG
-      mosi_line : out STD_LOGIC;
-      miso_line : in STD_LOGIC;
-      spi_cs : out STD_LOGIC;
-      spi_hold : out STD_LOGIC := '1'; -- Driven low to pause data input and output
-      spi_wp : out STD_LOGIC := '0'; -- Driven low to protect protected memory
-
-      -- DEBUG LINES
-      slave_byte_vector : out STD_LOGIC_VECTOR (31 downto 0) := x"0000_0000";
-      curr_state : out STD_LOGIC_VECTOR (3 downto 0);
-      nxt_state : out STD_LOGIC_VECTOR (3 downto 0);
-      tx_ready_flag : out STD_LOGIC;
-      debug_command_byte : out STD_LOGIC_VECTOR (7 downto 0);
-
-      -- DEBUG LINES (Not for sim) (SPI SALEAE TESTING)
-      -- debug_spi_clk : out STD_LOGIC;
-      -- debug_spi_miso : out STD_LOGIC;
-      -- debug_spi_cs : out STD_LOGIC;
-      -- debug_spi_mosi : out STD_LOGIC;
-
-      -- Dev board output
-      -- Seven segment
-      seven_seg_segments : out STD_LOGIC_VECTOR (7 downto 0);
-      seven_seg_select : out STD_LOGIC_VECTOR (3 downto 0);
-
-      -- On board LED's
-      dev_board_leds : out STD_LOGIC_VECTOR (15 downto 0)
-      );
-  end component;
-
-
   -- Simulation constants
-  constant clk_period : time := 10ns;
+  constant clk_period     : time := 10ns;
 
   -- Block essentials
-  signal sim_clk : STD_LOGIC;
-  signal sim_rst : STD_LOGIC := '1';
-  signal sim_btn : STD_LOGIC := '0';
+  signal sim_clk          : STD_LOGIC;
+  signal sim_rst          : STD_LOGIC := '1';
+  signal sim_btn          : STD_LOGIC := '0';
 
   -- SPI lines
-  signal sim_spi_clk : STD_LOGIC;
-  signal sim_mosi : STD_LOGIC;
-  signal sim_miso : STD_LOGIC := '1';
-  signal sim_spi_cs : STD_LOGIC;
+  signal sim_spi_clk      : STD_LOGIC;
+  signal sim_mosi         : STD_LOGIC;
+  signal sim_miso         : STD_LOGIC := '1';
+  signal sim_spi_cs       : STD_LOGIC;
 
   -- Sample Output
-  -- signal SAMPLE_MISO : STD_LOGIC_VECTOR (31 downto 0) := x"1234_5678";
-  signal SAMPLE_MISO : STD_LOGIC_VECTOR (31 downto 0) := x"1111_1111";
-  -- signal SAMPLE_MISO : STD_LOGIC_VECTOR (31 downto 0) := x"AAAA_AAAA";
-  signal SAMPLE_VALUES : STD_LOGIC_VECTOR (31 downto 0) := x"0000_0000";
-  signal seven_seg_disp : STD_LOGIC_VECTOR (7 downto 0);
+  signal SAMPLE_MISO      : STD_LOGIC_VECTOR (31 downto 0) := x"1111_1111";
+  signal SAMPLE_VALUES    : STD_LOGIC_VECTOR (31 downto 0) := x"0000_0000";
+  signal seven_seg_disp   : STD_LOGIC_VECTOR (7 downto 0);
   signal seven_seg_select : STD_LOGIC_VECTOR (3 downto 0);
 
   -- DEBUG
@@ -95,32 +54,17 @@ architecture Behavioral of SPI_master_top_tb is
   signal cmd_byte : STD_LOGIC_VECTOR (7 downto 0);
 
 begin
-  SP1: SPI_master_top
+  SP1: entity work.spi_master_top(rtl)
     Port map (
       -- Block necessities
-      clk => sim_clk,
-      btn => sim_btn,
+      clk_in => sim_clk,
+      rst_in => sim_rst,
 
       -- SPI lines
-      spi_clk => sim_spi_clk,
-      mosi_line => sim_mosi,
-      miso_line => sim_miso,
-      spi_cs => sim_spi_cs,
-
-      -- DEBUG LINES
-      slave_byte_vector => SAMPLE_VALUES,
-      curr_state => curr_state,
-      nxt_state => next_state,
-      tx_ready_flag => tx_ready_flag,
-      debug_command_byte => cmd_byte,
-
-      -- Dev board output
-      -- Seven segment
-      seven_seg_segments => seven_seg_disp,
-      seven_seg_select => seven_seg_select
-
-      -- On board LED's
-      -- dev_board_leds : out STD_LOGIC_VECTOR (15 downto 0)
+      sclk   => sim_spi_clk,
+      cs     => sim_spi_cs,
+      mosi   => sim_mosi,
+      miso   => sim_miso
       );
 
   -- Clock process

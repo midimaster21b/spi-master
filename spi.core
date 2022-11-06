@@ -1,0 +1,34 @@
+CAPI=2:
+name: midimaster21b:comm:spi:0.1.0
+description: A simple SPI master implementation
+
+filesets:
+  rtl:
+    files:
+      - src/rtl/spi_master_state.vhd
+      - src/rtl/spi_master_top.vhd
+    file_type: vhdlSource
+
+  tb:
+    files:
+      - src/tb/spi_master_top_tb.vhd
+    file_type: vhdlSource
+
+
+targets:
+  # Special FuseSoC target
+  default: &default
+    default_tool: vivado
+    filesets:
+      - rtl
+    toplevel: spi_master_top
+
+  # Simulation target
+  sim:
+    <<: *default
+    description: Simulate the design
+    default_tool: xsim
+    filesets_append:
+      - tb
+    toplevel: spi_master_top_tb
+

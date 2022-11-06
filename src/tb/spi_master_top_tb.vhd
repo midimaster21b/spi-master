@@ -19,10 +19,10 @@
 ----------------------------------------------------------------------------------
 
 
-library IEEE;
-use IEEE.STD_LOGIC_1164.ALL;
-use STD.TEXTIO.ALL;
-use IEEE.STD_LOGIC_TEXTIO.ALL;
+library ieee;
+use ieee.std_logic_1164.all;
+use std.textio.all;
+use ieee.std_logic_textio.all;
 
 entity SPI_master_top_tb is
 end SPI_master_top_tb;

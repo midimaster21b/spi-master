@@ -98,10 +98,8 @@ architecture rtl of spi_master is
 begin
 
   num_bytes <= std_logic_vector(total_byte_count_r);
-
-  -- Assign busy_r signal to busy flag
-  busy <= busy_r;
-  cs   <= cs_r;
+  busy      <= busy_r;
+  cs        <= cs_r;
 
 
   -----------------------------------------------------------------------------

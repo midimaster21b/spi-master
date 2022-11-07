@@ -421,9 +421,15 @@ begin
   -- This process is responsible for handling the AXIS master interface
   -- signals.
   -----------------------------------------------------------------------------
-  m_axis: process(clk_in)
+  m_axis: process(clk_in, rst_in)
   begin
-    if rising_edge(clk_in) then
+    if rst_in = RST_LEVEL_G then
+      first_bit_r   <= '1';
+      m_axis_tvalid <= '0';
+      m_axis_tdata  <= (others => '0');
+      m_axis_tlast  <= '0';
+
+    elsif rising_edge(clk_in) then
       case curr_state_r is
         when TX_STATE =>
           if(bit_count_r = to_unsigned(0, bit_count_r'length) and first_bit_r = '0') then

@@ -32,11 +32,28 @@ entity spi_master_top is
     clk_in : in  std_logic;
     rst_in : in  std_logic;
 
-    -- SPI lines
+    -----------------------------------
+    -- SPI interface
+    -----------------------------------
     sclk   : out std_logic;
     cs     : out std_logic;
     mosi   : out std_logic;
-    miso   : in  std_logic
+    miso   : in  std_logic;
+
+    -----------------------------------
+    -- AXIS interface
+    -----------------------------------
+    -- Tx
+    s_axis_tdata         : in  std_logic_vector( 7 downto 0);
+    s_axis_tvalid        : in  std_logic;
+    s_axis_tready        : out std_logic;
+    s_axis_tlast         : in  std_logic;
+
+    -- Rx
+    m_axis_tdata         : out std_logic_vector( 7 downto 0);
+    m_axis_tvalid        : out std_logic;
+    m_axis_tready        : in  std_logic;
+    m_axis_tlast         : out std_logic
     );
 end spi_master_top;
 
@@ -58,45 +75,52 @@ architecture rtl of spi_master_top is
   signal spi_busy         : STD_LOGIC;
   signal deb_btn          : STD_LOGIC;
 
+
 begin
 
   SP1 : entity work.spi_master(rtl)
     generic map (
-      OUTPUT_BUFFER_SIZE => 256,
-      INPUT_BUFFER_SIZE  => 1,
-      CLOCK_POLARITY     => '0',
-      CLOCK_PHASE        => '0',
-      MSB_FIRST          => '1'
+      CLOCK_POLARITY_G     => '0',
+      CLOCK_PHASE_G        => '0',
+      MSB_FIRST_G          => '1',
+      RST_LEVEL_G          => '1'
       )
     port map (
       -- Block necessities
-      clk           => clk_in,
-      rst           => rst_in,
-
-      -- SPI lines
-      spi_clk       => sclk,
-      mosi_line     => mosi,
-      miso_line     => miso,
+      clk_in        => clk_in,
+      rst_in        => rst_in,
 
       -----------------------------------
-      -- SPI/Block interface
+      -- SPI lines
+      -----------------------------------
+      sclk     => sclk,
+      mosi     => mosi,
+      miso     => miso,
+      cs       => open,
+
+      -----------------------------------
+      -- AXIS interface
       -----------------------------------
       -- Tx
       s_axis_tdata  => write_byte,
+      s_axis_tvalid => '0',
+      s_axis_tready => open,
+      s_axis_tlast  => '0',
 
       -- Rx
       m_axis_tdata  => read_byte,
+      m_axis_tvalid => open,
+      m_axis_tready => '1',
+      m_axis_tlast  => open,
 
+      -----------------------------------
+      -- Control & Stats
+      -----------------------------------
       -- Control
-      start         => deb_btn,
+      trigger       => deb_btn,
 
       -- Stats
-      num_rx_bytes  => num_rx_bytes,
-      num_tx_bytes  => num_tx_bytes,
-
-      -- Flags
-      Rx_Ready_Flag => slave_byte_ready,
-      tx_ready_flag => mosi_byte_ready,
+      num_bytes     => num_rx_bytes,
       busy          => spi_busy
       );
 

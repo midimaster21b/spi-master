@@ -42,7 +42,6 @@ entity spi_master is
     miso                 : in  std_logic;
     cs                   : out std_logic;
 
-
     -----------------------------------
     -- AXIS interface
     -----------------------------------
@@ -58,7 +57,6 @@ entity spi_master is
     m_axis_tready        : in  std_logic;
     m_axis_tlast         : out std_logic;
 
-
     -----------------------------------
     -- Control & Stats
     -----------------------------------
@@ -67,8 +65,6 @@ entity spi_master is
 
     -- Stats
     num_bytes            : out std_logic_vector(31 downto 0);
-    tx_ready_flag        : out std_logic;
-    rx_ready_flag        : out std_logic;
     busy                 : out std_logic
     );
 end spi_master;
@@ -96,12 +92,16 @@ architecture rtl of spi_master is
   signal miso_byte_r        : std_logic_vector (7 downto 0) := (others => '0');
   signal mosi_byte_r        : std_logic_vector (7 downto 0) := (others => '0');
   signal first_bit_r        : std_logic                     := '1';
+  signal cs_r               : std_logic                     := '1';
 
 
 begin
 
+  num_bytes <= std_logic_vector(total_byte_count_r);
+
   -- Assign busy_r signal to busy flag
   busy <= busy_r;
+  cs   <= cs_r;
 
 
   -----------------------------------------------------------------------------
@@ -199,13 +199,12 @@ begin
     -- If positive edge of the clk
     elsif rising_edge(clk_in) then
       -- Byte counters
-      -- If inactive state
-      if curr_state_r = RESET_STATE or curr_state_r = IDLE_STATE or curr_state_r = FINISHED_STATE then
+      if curr_state_r = RESET_STATE or curr_state_r = IDLE_STATE or curr_state_r = TRIG_STATE then
         -- Reset the counter
         curr_byte_count_r <= (others => '0');
 
-      -- else active state
-      else
+
+      elsif curr_state_r = TX_STATE and bit_count_r = 7 then
         -- Increment the counter
         curr_byte_count_r  <= curr_byte_count_r + 1;
         total_byte_count_r <= total_byte_count_r + 1;
@@ -259,52 +258,52 @@ begin
     if curr_state_r = TX_STATE then
       if CLOCK_POLARITY_G = '0' and CLOCK_PHASE_G = '0' then
         if falling_edge(clk_in) then
-          if MSB_First /= '1' then
+          if MSB_FIRST_G /= '1' then
             -- Set bit to output line
-            mosi <= mosi_byte_r(to_integer(unsigned(byte_count_r(2 downto 0))));
+            mosi <= mosi_byte_r(to_integer(unsigned(bit_count_r)));
 
           else
             -- Set bit to output line
-            mosi <= mosi_byte_r(7 - to_integer(unsigned(byte_count_r(2 downto 0))));
+            mosi <= mosi_byte_r(7 - to_integer(unsigned(bit_count_r)));
 
           end if;
         end if;
 
       elsif CLOCK_POLARITY_G = '0' and CLOCK_PHASE_G = '1' then
         if rising_edge(clk_in) then
-          if MSB_First /= '1' then
+          if MSB_FIRST_G /= '1' then
             -- Set bit to output line
-            mosi <= mosi_byte_r(to_integer(unsigned(byte_count_r(2 downto 0))));
+            mosi <= mosi_byte_r(to_integer(unsigned(bit_count_r)));
 
           else
             -- Set bit to output line
-            mosi <= mosi_byte_r(7 - to_integer(unsigned(byte_count_r(2 downto 0))));
+            mosi <= mosi_byte_r(7 - to_integer(unsigned(bit_count_r)));
 
           end if;
         end if;
 
       elsif CLOCK_POLARITY_G = '1' and CLOCK_PHASE_G = '0' then
         if rising_edge(clk_in) then
-          if MSB_First /= '1' then
+          if MSB_FIRST_G /= '1' then
             -- Set bit to output line
-            mosi <= mosi_byte_r(to_integer(unsigned(byte_count_r(2 downto 0))));
+            mosi <= mosi_byte_r(to_integer(unsigned(bit_count_r)));
 
           else
             -- Set bit to output line
-            mosi <= mosi_byte_r(7 - to_integer(unsigned(byte_count_r(2 downto 0))));
+            mosi <= mosi_byte_r(7 - to_integer(unsigned(bit_count_r)));
 
           end if;
         end if;
 
       elsif CLOCK_POLARITY_G = '1' and CLOCK_PHASE_G = '1' then
         if falling_edge(clk_in) then
-          if MSB_First /= '1' then
+          if MSB_FIRST_G /= '1' then
             -- Set bit to output line
-            mosi <= mosi_byte_r(to_integer(unsigned(byte_count_r(2 downto 0))));
+            mosi <= mosi_byte_r(to_integer(unsigned(bit_count_r)));
 
           else
             -- Set bit to output line
-            mosi <= mosi_byte_r(7 - to_integer(unsigned(byte_count_r(2 downto 0))));
+            mosi <= mosi_byte_r(7 - to_integer(unsigned(bit_count_r)));
 
           end if;
         end if;
@@ -316,6 +315,7 @@ begin
 
     end if; -- curr_state_r = tx
   end process;
+
 
   -----------------------------------------------------------------------------
   -- SPI data input process
@@ -337,6 +337,31 @@ begin
   end process;
 
 
+  -----------------------------------------------------------------------------
+  -- SPI chip select process
+  --
+  -- This process is responsible for controlling the register value used to
+  -- output the chip select port value.
+  -----------------------------------------------------------------------------
+  cs_proc: process(clk_in)
+  begin
+    if rising_edge(clk_in) then
+      case curr_state_r is
+        when TRIG_STATE =>
+          cs_r <= '0';
+
+        when TX_STATE =>
+          cs_r <= '0';
+
+        when FINISHED_STATE =>
+          cs_r <= '0';
+
+        when others =>
+          cs_r <= '1';
+      end case;
+    end if;
+  end process;
+
 
   -----------------------------------------------------------------------------
   -- AXIS slave process
@@ -345,7 +370,7 @@ begin
   -----------------------------------------------------------------------------
   s_axis: process(clk_in)
   begin
-    if rising_edge(clk) then
+    if rising_edge(clk_in) then
       case curr_state_r is
         when RESET_STATE =>
           s_axis_tready <= '0';
@@ -400,7 +425,7 @@ begin
   -----------------------------------------------------------------------------
   m_axis: process(clk_in)
   begin
-    if rising_edge(clk) then
+    if rising_edge(clk_in) then
       case curr_state_r is
         when TX_STATE =>
           if(bit_count_r = to_unsigned(0, bit_count_r'length) and first_bit_r = '0') then

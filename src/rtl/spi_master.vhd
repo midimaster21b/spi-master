@@ -366,9 +366,12 @@ begin
   --
   -- This process is responsible for handling the AXIS slave interface signals.
   -----------------------------------------------------------------------------
-  s_axis: process(clk_in)
+  s_axis: process(clk_in, rst_in)
   begin
-    if rising_edge(clk_in) then
+    if rst_in = RST_LEVEL_G then
+      s_axis_tready <= '0';
+
+    elsif rising_edge(clk_in) then
       case curr_state_r is
         when RESET_STATE =>
           s_axis_tready <= '0';

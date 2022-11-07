@@ -52,16 +52,26 @@ module spi_master_tb;
 
 
    initial begin
+      $timeformat(-9, 2, " ns", 20);
+      $display("==========================");
+      $display("====== TEST START! =======");
+      $display("==========================");
+
       repeat(10) #(period);
+
+      $display("%t: TB - Deasserting resets", $time);
       rstn <= '1;
       repeat(2) #(period);
 
 
       #100ns;
+      $display("%t: TB - Asserting trigger", $time);
       trig <= '1;
       #(period);
+      $display("%t: TB - Deasserting trigger", $time);
       trig <= '0;
 
+      #(period);
       // Writes
       // axis_master.write_beat();
       // repeat(10) #(period);
@@ -70,7 +80,7 @@ module spi_master_tb;
       // $display("============================");
       // $display("======= TEST PASSED! =======");
       // $display("============================");
-      // $finish;
+      $finish;
    end
 
 

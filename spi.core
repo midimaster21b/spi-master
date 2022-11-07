@@ -5,15 +5,15 @@ description: A simple SPI master implementation
 filesets:
   rtl:
     files:
-      - src/rtl/spi_master_state.vhd
-      - src/rtl/spi_master_top.vhd
+      - src/rtl/spi_master.vhd
+      - src/rtl/spi_master_wrapper.vhd
     file_type: vhdlSource
 
   tb:
     files:
-      - src/tb/spi_master_top_tb.vhd
-    file_type: vhdlSource
-
+      - src/tb/spi_master_tb.sv
+    file_type: systemVerilogSource
+    depend: [midimaster21b:bfm:axis, midimaster21b:bfm:spi, midimaster21b:comm:amba-interfaces]
 
 targets:
   # Special FuseSoC target
@@ -21,7 +21,7 @@ targets:
     default_tool: vivado
     filesets:
       - rtl
-    toplevel: spi_master_top
+    toplevel: spi_master_wrapper
 
   # Simulation target
   sim:
@@ -30,5 +30,5 @@ targets:
     default_tool: xsim
     filesets_append:
       - tb
-    toplevel: spi_master_top_tb
+    toplevel: spi_master_tb
 

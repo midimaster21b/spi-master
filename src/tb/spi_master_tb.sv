@@ -2,7 +2,7 @@ module spi_master_tb;
    parameter int clk_rate = 400000;
    time		 period = 1s/clk_rate;
 
-   parameter int CLOCK_POLARITY = 1;
+   parameter int CLOCK_POLARITY = 0;
    parameter int CLOCK_PHASE    = 0;
    parameter int MSB_FIRST      = 1;
    parameter int RST_LEVEL      = 0;
@@ -80,7 +80,7 @@ module spi_master_tb;
       // $display("============================");
       // $display("======= TEST PASSED! =======");
       // $display("============================");
-      $finish;
+      // $finish;
    end
 
 
@@ -95,7 +95,7 @@ module spi_master_tb;
 
 
    // BFMs
-   spi_slave_bfm   #(.clk_polarity(0), .clk_phase(0)) u_spi_slave(.sclk(sclk), .mosi(mosi), .miso(miso), .ss(ss));
+   spi_slave_bfm   #(.clk_polarity(CLOCK_POLARITY), .clk_phase(CLOCK_PHASE)) u_spi_slave(.sclk(sclk), .mosi(mosi), .miso(miso), .ss(ss));
    axis_master_bfm u_axis_master(m_connector);
    axis_slave_bfm  u_axis_slave(s_connector);
 

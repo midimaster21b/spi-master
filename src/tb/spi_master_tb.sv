@@ -2,8 +2,8 @@ module spi_master_tb;
    parameter int clk_rate = 400000;
    time		 period = 1s/clk_rate;
 
-   parameter int CLOCK_POLARITY = 0;
-   parameter int CLOCK_PHASE    = 0;
+   parameter int CLOCK_POLARITY_G = 0;
+   parameter int CLOCK_PHASE_G    = 0;
    parameter int MSB_FIRST      = 1;
    parameter int RST_LEVEL      = 0;
 
@@ -97,14 +97,14 @@ module spi_master_tb;
 
 
    // BFMs
-   spi_slave_bfm   #(.clk_polarity(CLOCK_POLARITY), .clk_phase(CLOCK_PHASE)) u_spi_slave(.sclk(sclk), .mosi(mosi), .miso(miso), .ss(ss));
+   spi_slave_bfm   #(.clk_polarity(CLOCK_POLARITY_G), .clk_phase(CLOCK_PHASE_G)) u_spi_slave(.sclk(sclk), .mosi(mosi), .miso(miso), .ss(ss));
    axis_master_bfm u_axis_master(m_connector);
    axis_slave_bfm  u_axis_slave(s_connector);
 
    // DUT
    spi_master_wrapper #(
-			.CLOCK_POLARITY_G(CLOCK_POLARITY),
-			.CLOCK_PHASE_G(CLOCK_PHASE),
+			.CLOCK_POLARITY_G(CLOCK_POLARITY_G),
+			.CLOCK_PHASE_G(CLOCK_PHASE_G),
 			.MSB_FIRST_G(MSB_FIRST),
 			.RST_LEVEL_G(RST_LEVEL)
 			) dut (

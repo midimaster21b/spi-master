@@ -73,9 +73,9 @@ module spi_master_tb;
 
       #(period);
       // Writes
-      u_axis_master.add_basic_beat(.tdata(8'h37), .tlast('0));
-      u_axis_master.add_basic_beat(.tdata(8'h48), .tlast('0));
-      u_axis_master.add_basic_beat(.tdata(8'h59), .tlast('1));
+      u_axis_master.put_simple_beat(.tdata(8'h37), .tlast('0));
+      u_axis_master.put_simple_beat(.tdata(8'h48), .tlast('0));
+      u_axis_master.put_simple_beat(.tdata(8'h59), .tlast('1));
       // repeat(10) #(period);
       // axis_master.write_beat();
 

@@ -7,6 +7,19 @@ module spi_master_tb;
    parameter int MSB_FIRST      = 1;
    parameter int RST_LEVEL      = 0;
 
+   const logic [7:0] test_mosi_beats[3] = {
+					   8'h37,
+					   8'h48,
+					   8'h59
+					   };
+
+   const logic [7:0] test_miso_beats[3] = {
+					   8'hC8,
+					   8'hB7,
+					   8'hA6
+					   };
+
+
    logic	 clk  = 0;
    logic	 rstn = 0;
 
@@ -29,6 +42,9 @@ module spi_master_tb;
    wire		 ss;
 
    logic         trig = 0;
+   logic	 mosi_success_s = '0;
+   logic	 miso_success_s = '0;
+
 
    axis_if #(.TDATA_BYTES(1)) m_connector(.aclk(clk), .aresetn(rstn));
    axis_if #(.TDATA_BYTES(1)) s_connector(.aclk(clk), .aresetn(rstn));
@@ -63,7 +79,6 @@ module spi_master_tb;
       rstn <= '1;
       repeat(2) #(period);
 
-
       #100ns;
       $display("%t: TB - Asserting trigger", $time);
       trig <= '1;
@@ -72,18 +87,96 @@ module spi_master_tb;
       trig <= '0;
 
       #(period);
-      // Writes
-      u_axis_master.put_simple_beat(.tdata(8'h37), .tlast('0));
-      u_axis_master.put_simple_beat(.tdata(8'h48), .tlast('0));
-      u_axis_master.put_simple_beat(.tdata(8'h59), .tlast('1));
+
       // repeat(10) #(period);
       // axis_master.write_beat();
 
-      // $display("============================");
-      // $display("======= TEST PASSED! =======");
-      // $display("============================");
-      // $finish;
+      wait(miso_success_s == '1);
+      wait(mosi_success_s == '1);
+
+      $display("============================");
+      $display("======= TEST PASSED! =======");
+      $display("============================");
+      $finish;
    end
+
+
+   /**************************************************************************
+    * Test the MOSI pathway.
+    **************************************************************************/
+   task test_mosi;
+      logic [7:0] temp_byte;
+
+      begin
+	 // Write MOSI test data
+	 for(int x=0; x<$size(test_mosi_beats); x++) begin
+	    if(x == $size(test_mosi_beats)-1) begin
+	       u_axis_master.put_simple_beat(.tdata(test_mosi_beats[x]), .tlast('1));
+
+	    end else begin
+	       u_axis_master.put_simple_beat(.tdata(test_mosi_beats[x]), .tlast('0));
+
+	    end
+	 end
+
+
+	 // Read MOSI test data
+	 for(int x=0; x<$size(test_mosi_beats); x++) begin
+	    u_spi_slave.get_mosi_byte(temp_byte);
+	    assert(temp_byte == test_mosi_beats[x]);
+	 end
+
+	 $display("%t: TB - MOSI Test [PASS]", $time);
+	 mosi_success_s = '1;
+      end
+   endtask // test_mosi
+
+
+
+   /**************************************************************************
+    * Test the MISO pathway.
+    **************************************************************************/
+   task test_miso;
+      logic [7:0] temp_byte;
+      logic	  temp_last;
+
+      begin
+	 // Write MISO test data
+	 for(int x=0; x<$size(test_mosi_beats); x++) begin
+	    u_spi_slave.put_miso_byte(test_miso_beats[x]);
+	 end
+
+
+	 // Read MOSI test data
+	 for(int x=0; x<$size(test_miso_beats); x++) begin
+	    u_axis_slave.get_simple_beat(.tdata(temp_byte), .tlast(temp_last));
+	    assert(temp_byte == test_mosi_beats[x]);
+
+	    if(x==$size(test_miso_beats)-1) begin
+	       assert(temp_last == '1);
+
+	    end else begin
+	       assert(temp_last == '0);
+
+	    end
+	 end
+
+	 $timeformat(-9, 2, " ns", 20);
+	 $display("%t: TB - MISO Test [PASS]", $time);
+	 miso_success_s = '1;
+      end
+   endtask // test_miso
+
+
+   initial begin
+      test_miso();
+   end
+
+   initial begin
+      test_mosi();
+   end
+
+
 
 
    initial begin

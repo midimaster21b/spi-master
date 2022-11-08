@@ -94,6 +94,7 @@ architecture rtl of spi_master is
   signal first_bit_r        : std_logic                     := '1';
   signal cs_r               : std_logic                     := '1';
 
+  signal s_axis_tvalid_r    : std_logic                     := '0';
 
 begin
 
@@ -122,12 +123,13 @@ begin
 
 
   -- Determine the next state
-  determine_state: process(curr_state_r, trigger, bit_count_r, last_byte_r)
+  determine_state: process(curr_state_r, trigger, bit_count_r, last_byte_r, s_axis_tvalid_r)
   begin
     case curr_state_r is
       when RESET_STATE =>
         -- Move to the idle state
         next_state_s <= IDLE_STATE;
+
 
       when IDLE_STATE =>
         -- If triggered
@@ -141,9 +143,18 @@ begin
 
         end if;
 
+
       when TRIG_STATE =>
-        -- Stay here for a single cycle
-        next_state_s <= TX_STATE;
+        if s_axis_tvalid_r = '1' then
+          -- Stay here for a single cycle
+          next_state_s <= TX_STATE;
+
+        else
+          -- Stay here for a single cycle
+          next_state_s <= TRIG_STATE;
+
+        end if;
+
 
       when TX_STATE =>
         -- If byte counter hit max
@@ -156,6 +167,7 @@ begin
           next_state_s <= TX_STATE;
 
         end if;
+
 
       when FINISHED_STATE =>
         next_state_s <= IDLE_STATE;
@@ -369,9 +381,12 @@ begin
   s_axis: process(clk_in, rst_in)
   begin
     if rst_in = RST_LEVEL_G then
-      s_axis_tready <= '0';
+      s_axis_tready   <= '0';
+      s_axis_tvalid_r <= '0';
 
     elsif rising_edge(clk_in) then
+      s_axis_tvalid_r <= s_axis_tvalid;
+
       case curr_state_r is
         when RESET_STATE =>
           s_axis_tready <= '0';
@@ -384,7 +399,14 @@ begin
           mosi_byte_r   <= (others => '0');
 
         when TRIG_STATE =>
-          s_axis_tready <= '1';
+          if s_axis_tvalid_r = '1' then
+            s_axis_tready <= '1';
+
+          else
+            s_axis_tready <= '0';
+
+          end if;
+
           last_byte_r   <= s_axis_tlast;
           mosi_byte_r   <= s_axis_tdata;
 

@@ -5,6 +5,7 @@ A SPI master component that can be easily integrated in FuseSoC projects. For ri
 This core currently only has two parameters:
 
 **Clock Polarity**: The polarity of the clock when the master is not transmitting.
+
 **Clock Phase**: The phase at which data is being transmitted by the master.
 
 ## Usage

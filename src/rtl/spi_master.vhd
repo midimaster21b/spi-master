@@ -460,7 +460,7 @@ begin
           if(bit_count_r = to_unsigned(0, bit_count_r'length) and first_bit_r = '0') then
             m_axis_tvalid <= '1';
             m_axis_tdata  <= miso_byte_r;
-            m_axis_tlast  <= last_byte_r;
+            m_axis_tlast  <= '0';
 
           else
             first_bit_r   <= '0';
@@ -469,6 +469,12 @@ begin
             m_axis_tlast  <= '0';
 
           end if;
+
+        when FINISHED_STATE =>
+            m_axis_tvalid <= '1';
+            m_axis_tdata  <= miso_byte_r;
+            m_axis_tlast  <= '1';
+
 
         when others =>
           first_bit_r   <= '1';

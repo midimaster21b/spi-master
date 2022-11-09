@@ -119,11 +119,15 @@ module spi_master_tb;
 	    end
 	 end
 
+	 $timeformat(-9, 2, " ns", 20);
 
 	 // Read MOSI test data
 	 for(int x=0; x<$size(test_mosi_beats); x++) begin
 	    u_spi_slave.get_mosi_byte(temp_byte);
 	    assert(temp_byte == test_mosi_beats[x]);
+	    $display("%t: TB - MOSI - Expected: '%h' Found: '%h'", $time, test_mosi_beats[x], temp_byte);
+
+
 	 end
 
 	 $display("%t: TB - MOSI Test [PASS]", $time);
@@ -141,16 +145,18 @@ module spi_master_tb;
       logic	  temp_last;
 
       begin
+	 $timeformat(-9, 2, " ns", 20);
 	 // Write MISO test data
-	 for(int x=0; x<$size(test_mosi_beats); x++) begin
+	 for(int x=0; x<$size(test_miso_beats); x++) begin
 	    u_spi_slave.put_miso_byte(test_miso_beats[x]);
 	 end
 
 
-	 // Read MOSI test data
+	 // Read MISO test data
 	 for(int x=0; x<$size(test_miso_beats); x++) begin
 	    u_axis_slave.get_simple_beat(.tdata(temp_byte), .tlast(temp_last));
-	    assert(temp_byte == test_mosi_beats[x]);
+	    assert(temp_byte == test_miso_beats[x]);
+	    $display("%t: TB - MISO - Expected: '%h' Found: '%h'", $time, test_miso_beats[x], temp_byte);
 
 	    if(x==$size(test_miso_beats)-1) begin
 	       assert(temp_last == '1);
@@ -161,7 +167,6 @@ module spi_master_tb;
 	    end
 	 end
 
-	 $timeformat(-9, 2, " ns", 20);
 	 $display("%t: TB - MISO Test [PASS]", $time);
 	 miso_success_s = '1;
       end

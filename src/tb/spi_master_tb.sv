@@ -124,7 +124,7 @@ module spi_master_tb;
 	 // Read MOSI test data
 	 for(int x=0; x<$size(test_mosi_beats); x++) begin
 	    u_spi_slave.get_mosi_byte(temp_byte);
-	    // assert(temp_byte == test_mosi_beats[x]) else $fatal("%t: TB - MOSI - Expected: '%h' Found: '%h'", $time, test_mosi_beats[x], temp_byte);
+	    assert(temp_byte == test_mosi_beats[x]) else $fatal("%t: TB - MOSI - Expected: '%h' Found: '%h'", $time, test_mosi_beats[x], temp_byte);
 
 	 end
 

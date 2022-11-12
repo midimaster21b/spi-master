@@ -24,7 +24,7 @@ use ieee.numeric_std.all;
 
 entity spi_master is
   generic (
-    CLOCK_POLARITY_G     : std_logic := '1';
+    CLOCK_POLARITY_G     : std_logic := '0';
     CLOCK_PHASE_G        : std_logic := '0';
     MSB_FIRST_G          : std_logic := '1';
     RST_LEVEL_G          : std_logic := '1'
@@ -122,9 +122,29 @@ begin
   -- d2_s  <= mosi_byte_r(9 downto 1);
 
 
-  clk_s <= clk_in;
-  d1_s  <= mosi_byte_r(16);
-  d2_s  <= mosi_byte_r(15);
+  -- -- Phas, Pol
+  -- -- 0,0 and 0,1
+  -- clk_s <= clk_in;
+  -- d1_s  <= mosi_byte_r(16);
+  -- d2_s  <= mosi_byte_r(15);
+
+  -- -- -- Phas, Pol
+  -- -- -- 1,0 and 1,1
+  -- clk_s <= not clk_in;
+  -- d1_s  <= mosi_byte_r(17);
+  -- d2_s  <= mosi_byte_r(16);
+
+
+  -- Phas, Pol
+  clk_s <= clk_in          when CLOCK_PHASE_G = '0' else not clk_in;
+  d1_s  <= mosi_byte_r(16) when CLOCK_PHASE_G = '0' else mosi_byte_r(17);
+  d2_s  <= mosi_byte_r(15) when CLOCK_PHASE_G = '0' else mosi_byte_r(16);
+
+
+
+
+
+
 
 
   -- -- Pol, Pha
@@ -384,12 +404,12 @@ begin
             -- s_axis_tready <= '1';
             s_axis_tready <= '0';
             last_byte_r   <= s_axis_tlast;
-            mosi_byte_r(16 downto 0) <= mosi_byte_r(15 downto 0) & "0";
+            mosi_byte_r(17 downto 0) <= mosi_byte_r(16 downto 0) & "0";
 
           else
             s_axis_tready <= '0';
             last_byte_r   <= last_byte_r;
-            mosi_byte_r(16 downto 0) <= mosi_byte_r(15 downto 0) & "0";
+            mosi_byte_r(17 downto 0) <= mosi_byte_r(16 downto 0) & "0";
 
           end if;
 

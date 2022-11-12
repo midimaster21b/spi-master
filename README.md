@@ -16,7 +16,7 @@ In order to use this core as it is intended, FuseSoC is required to be installed
 
 Running the simulation:
 
-`fusesoc --cores-root . run --target sim midimaster21b:comm:spi-master:0.1.0`
+`fusesoc --cores-root . run --target sim midimaster21b:comm:spi-master:0.1.1`
 
 Running the simulation with parameters:
 

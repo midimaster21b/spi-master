@@ -426,13 +426,10 @@ begin
   end process;
 
 
-  -- Works for both polarities
   u_mosi: entity work.oddr
     port map(
       clk => clk_s,
       rst => rst_s,
-      -- d1  => d1_s(8-to_integer(unsigned(bit_count_r))),
-      -- d2  => d2_s(7-to_integer(unsigned(bit_count_r))),
       d1  => d1_s,
       d2  => d2_s,
       q   => mosi

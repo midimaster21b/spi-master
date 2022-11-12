@@ -90,18 +90,27 @@ architecture rtl of spi_master is
   signal last_byte_r        : std_logic                     := '0';
   signal busy_r             : std_logic                     := '0';
   signal miso_byte_r        : std_logic_vector (7 downto 0) := (others => '0');
-  signal mosi_byte_r        : std_logic_vector (7 downto 0) := (others => '0');
+  -- signal mosi_byte_r        : std_logic_vector (7 downto 0) := (others => '0');
+  signal mosi_byte_r        : std_logic_vector (8 downto 0) := (others => '0');
   signal first_bit_r        : std_logic                     := '1';
   signal cs_r               : std_logic                     := '1';
 
   signal s_axis_tvalid_r    : std_logic                     := '0';
+
+  signal test_mosi_s        : std_logic;
+  signal sclk_en_s          : std_logic;
+
+  signal rst_s              : std_logic;
+
 
 begin
 
   num_bytes <= std_logic_vector(total_byte_count_r);
   busy      <= busy_r;
   cs        <= cs_r;
-
+  rst_s     <= '1' when rst_in = RST_LEVEL_G else '0'; -- active high reset
+  sclk_en_s <= not CLOCK_POLARITY_G when curr_state_r = TX_STATE else CLOCK_POLARITY_G;
+  -- sclk_en_s <= '1' when curr_state_r = TX_STATE else '0';
 
   -----------------------------------------------------------------------------
   -- Two process state machine
@@ -223,7 +232,8 @@ begin
 
 
       -- Bit counter
-      if curr_state_r = TX_STATE then
+      -- if curr_state_r = TX_STATE or curr_state_r = TRIG_STATE then
+      if curr_state_r = TX_STATE  then
         -- Only 3 bits so it automatically rolls over at 8 bits to zero
         bit_count_r <= bit_count_r + 1;
 
@@ -235,26 +245,26 @@ begin
   end process;
 
 
-  -----------------------------------------------------------------------------
-  -- SPI clock output process
-  --
-  -- This process is responsible for determining and driving the sclk output
-  -- port.
-  -----------------------------------------------------------------------------
-  spi_clk_gen : process(clk_in)
-  begin
-    -- If transmitting
-    if curr_state_r = TX_STATE then
-      -- Set SPI clock to output
-      sclk <= clk_in;
+  -- -----------------------------------------------------------------------------
+  -- -- SPI clock output process
+  -- --
+  -- -- This process is responsible for determining and driving the sclk output
+  -- -- port.
+  -- -----------------------------------------------------------------------------
+  -- spi_clk_gen : process(clk_in)
+  -- begin
+  --   -- If transmitting
+  --   if curr_state_r = TX_STATE then
+  --     -- Set SPI clock to output
+  --     sclk <= clk_in;
 
-    -- While transmitting or receiving
-    else
-      -- Set idle clock to polarity
-      sclk <= CLOCK_POLARITY_G;
+  --   -- While transmitting or receiving
+  --   else
+  --     -- Set idle clock to polarity
+  --     sclk <= CLOCK_POLARITY_G;
 
-    end if;
-  end process;
+  --   end if;
+  -- end process;
 
 
   -----------------------------------------------------------------------------
@@ -263,68 +273,68 @@ begin
   -- This process is responsible for determining and driving the mosi output
   -- port using the byte in the MOSI byte buffer.
   -----------------------------------------------------------------------------
-  spi_out : process(clk_in)
-  begin
-    if curr_state_r = TX_STATE then
-      if CLOCK_POLARITY_G = '0' and CLOCK_PHASE_G = '0' then
-        if falling_edge(clk_in) then
-          if MSB_FIRST_G /= '1' then
-            -- Set bit to output line
-            mosi <= mosi_byte_r(to_integer(unsigned(bit_count_r)));
+  -- spi_out : process(clk_in)
+  -- begin
+  --   if curr_state_r = TX_STATE then
+  --     if CLOCK_POLARITY_G = '0' and CLOCK_PHASE_G = '0' then
+  --       if falling_edge(clk_in) then
+  --         if MSB_FIRST_G /= '1' then
+  --           -- Set bit to output line
+  --           mosi <= mosi_byte_r(to_integer(unsigned(bit_count_r)));
 
-          else
-            -- Set bit to output line
-            mosi <= mosi_byte_r(7 - to_integer(unsigned(bit_count_r)));
+  --         else
+  --           -- Set bit to output line
+  --           mosi <= mosi_byte_r(7 - to_integer(unsigned(bit_count_r)));
 
-          end if;
-        end if;
+  --         end if;
+  --       end if;
 
-      elsif CLOCK_POLARITY_G = '0' and CLOCK_PHASE_G = '1' then
-        if rising_edge(clk_in) then
-          if MSB_FIRST_G /= '1' then
-            -- Set bit to output line
-            mosi <= mosi_byte_r(to_integer(unsigned(bit_count_r)));
+  --     elsif CLOCK_POLARITY_G = '0' and CLOCK_PHASE_G = '1' then
+  --       if rising_edge(clk_in) then
+  --         if MSB_FIRST_G /= '1' then
+  --           -- Set bit to output line
+  --           mosi <= mosi_byte_r(to_integer(unsigned(bit_count_r)));
 
-          else
-            -- Set bit to output line
-            mosi <= mosi_byte_r(7 - to_integer(unsigned(bit_count_r)));
+  --         else
+  --           -- Set bit to output line
+  --           mosi <= mosi_byte_r(7 - to_integer(unsigned(bit_count_r)));
 
-          end if;
-        end if;
+  --         end if;
+  --       end if;
 
-      elsif CLOCK_POLARITY_G = '1' and CLOCK_PHASE_G = '0' then
-        if rising_edge(clk_in) then
-          if MSB_FIRST_G /= '1' then
-            -- Set bit to output line
-            mosi <= mosi_byte_r(to_integer(unsigned(bit_count_r)));
+  --     elsif CLOCK_POLARITY_G = '1' and CLOCK_PHASE_G = '0' then
+  --       if rising_edge(clk_in) then
+  --         if MSB_FIRST_G /= '1' then
+  --           -- Set bit to output line
+  --           mosi <= mosi_byte_r(to_integer(unsigned(bit_count_r)));
 
-          else
-            -- Set bit to output line
-            mosi <= mosi_byte_r(7 - to_integer(unsigned(bit_count_r)));
+  --         else
+  --           -- Set bit to output line
+  --           mosi <= mosi_byte_r(7 - to_integer(unsigned(bit_count_r)));
 
-          end if;
-        end if;
+  --         end if;
+  --       end if;
 
-      elsif CLOCK_POLARITY_G = '1' and CLOCK_PHASE_G = '1' then
-        if falling_edge(clk_in) then
-          if MSB_FIRST_G /= '1' then
-            -- Set bit to output line
-            mosi <= mosi_byte_r(to_integer(unsigned(bit_count_r)));
+  --     elsif CLOCK_POLARITY_G = '1' and CLOCK_PHASE_G = '1' then
+  --       if falling_edge(clk_in) then
+  --         if MSB_FIRST_G /= '1' then
+  --           -- Set bit to output line
+  --           mosi <= mosi_byte_r(to_integer(unsigned(bit_count_r)));
 
-          else
-            -- Set bit to output line
-            mosi <= mosi_byte_r(7 - to_integer(unsigned(bit_count_r)));
+  --         else
+  --           -- Set bit to output line
+  --           mosi <= mosi_byte_r(7 - to_integer(unsigned(bit_count_r)));
 
-          end if;
-        end if;
-      end if;
+  --         end if;
+  --       end if;
+  --     end if;
 
-    else
-      -- Set to normally high
-      mosi <= '1';
+  --   else
+  --     -- Set to normally high
+  --     mosi <= '1';
 
-    end if; -- curr_state_r = tx
-  end process;
+  --   end if; -- curr_state_r = tx
+  -- end process;
 
 
   -----------------------------------------------------------------------------
@@ -408,7 +418,7 @@ begin
           end if;
 
           last_byte_r   <= s_axis_tlast;
-          mosi_byte_r   <= s_axis_tdata;
+          mosi_byte_r(8 downto 1)   <= s_axis_tdata;
 
         when TX_STATE =>
           -- If not the last byte, get the next byte
@@ -416,7 +426,8 @@ begin
              and last_byte_r = '0') then
             s_axis_tready <= '1';
             last_byte_r   <= s_axis_tlast;
-            mosi_byte_r   <= s_axis_tdata;
+            -- mosi_byte_r   <= s_axis_tdata;
+            mosi_byte_r(8 downto 1)   <= s_axis_tdata;
 
           else
             s_axis_tready <= '0';
@@ -485,4 +496,29 @@ begin
       end case;
     end if;
   end process;
+
+
+  u_mosi: entity work.oddr
+    port map(
+      clk => clk_in,
+      rst => rst_s,
+      d1  => mosi_byte_r(8-to_integer(unsigned(bit_count_r))),
+      d2  => mosi_byte_r(7-to_integer(unsigned(bit_count_r))),
+      q   => mosi
+      );
+
+
+  u_sclk: entity work.oddr
+    port map(
+      clk => clk_in,
+      rst => rst_s,
+      d1  => sclk_en_s,
+      d2  => CLOCK_POLARITY_G,
+      q   => sclk
+      );
+
+
+
+
+
 end rtl;

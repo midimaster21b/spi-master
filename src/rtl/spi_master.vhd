@@ -103,8 +103,6 @@ architecture rtl of spi_master is
   signal rst_s              : std_logic;
 
   signal clk_s              : std_logic;
-  -- signal d1_s               : std_logic_vector(8 downto 0);
-  -- signal d2_s               : std_logic_vector(8 downto 0);
   signal d1_s               : std_logic;
   signal d2_s               : std_logic;
 

@@ -13,7 +13,7 @@ filesets:
     files:
       - src/tb/spi_master_tb.sv
     file_type: systemVerilogSource
-    depend: [midimaster21b:bfm:axis, midimaster21b:bfm:spi, midimaster21b:comm:amba-interfaces]
+    depend: [midimaster21b:bfm:axis, midimaster21b:bfm:spi, midimaster21b:comm:amba-interfaces, midimaster21b:prim:ddr]
 
 targets:
   # Special FuseSoC target

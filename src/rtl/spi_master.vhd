@@ -102,6 +102,10 @@ architecture rtl of spi_master is
 
   signal rst_s              : std_logic;
 
+  signal clk_s              : std_logic;
+  signal d1_s               : std_logic_vector(8 downto 0);
+  signal d2_s               : std_logic_vector(8 downto 0);
+
 
 begin
 
@@ -111,6 +115,73 @@ begin
   rst_s     <= '1' when rst_in = RST_LEVEL_G else '0'; -- active high reset
   sclk_en_s <= not CLOCK_POLARITY_G when curr_state_r = TX_STATE else CLOCK_POLARITY_G;
   -- sclk_en_s <= '1' when curr_state_r = TX_STATE else '0';
+
+  -- -- Pol 0, Phase 0
+  -- -- Pol 1, Phase 0
+  -- clk_s <= clk_in;
+  -- d1_s  <= mosi_byte_r(9 downto 1);
+  -- d2_s  <= mosi_byte_r(9 downto 1);
+
+  -- -- Pol 1, Phase 1
+  -- -- Pol 0, Phase 1
+  -- clk_s <= not clk_in;
+  -- d1_s  <= mosi_byte_r(9 downto 1);
+  -- d2_s  <= mosi_byte_r(9 downto 1);
+
+
+  clk_s <= clk_in when CLOCK_PHASE_G = '0' else not clk_in;
+  d1_s  <= mosi_byte_r(9 downto 1);
+  d2_s  <= mosi_byte_r(9 downto 1);
+
+
+  -- clk_s <= clk_in                  when CLOCK_PHASE_G = '1' else not clk_in;
+  -- d1_s  <= mosi_byte_r(8 downto 0) when CLOCK_PHASE_G = '0' else mosi_byte_r(9 downto 1);
+  -- d2_s  <= mosi_byte_r(8 downto 0) when CLOCK_PHASE_G = '0' else mosi_byte_r(9 downto 1);
+
+
+  -- -- This works for Pol. 0, Phase 0
+  -- clk_s <= clk_in                  when CLOCK_PHASE_G = '0' else not clk_in;
+  -- d1_s  <= mosi_byte_r(8 downto 0) when CLOCK_PHASE_G = '1' else mosi_byte_r(9 downto 1);
+  -- d2_s  <= mosi_byte_r(8 downto 0) when CLOCK_PHASE_G = '1' else mosi_byte_r(9 downto 1);
+
+  -- -- This works for Pol. 0, Phase 1
+  -- clk_s <= clk_in                  when CLOCK_PHASE_G = '0' else not clk_in;
+  -- d1_s  <= mosi_byte_r(8 downto 0) when CLOCK_PHASE_G = '0' else mosi_byte_r(9 downto 1);
+  -- d2_s  <= mosi_byte_r(8 downto 0) when CLOCK_PHASE_G = '0' else mosi_byte_r(9 downto 1);
+
+  -- -- This works for Pol. 1, Phase 0
+  -- clk_s <= clk_in                  when CLOCK_PHASE_G = '0' else not clk_in;
+  -- d1_s  <= mosi_byte_r(8 downto 0) when CLOCK_PHASE_G = '1' else mosi_byte_r(9 downto 1);
+  -- d2_s  <= mosi_byte_r(8 downto 0) when CLOCK_PHASE_G = '1' else mosi_byte_r(9 downto 1);
+
+  -- -- This works for Pol. 1, Phase 1
+  -- clk_s <= clk_in                  when CLOCK_PHASE_G = '1' else not clk_in;
+  -- d1_s  <= mosi_byte_r(8 downto 0) when CLOCK_PHASE_G = '0' else mosi_byte_r(9 downto 1);
+  -- d2_s  <= mosi_byte_r(8 downto 0) when CLOCK_PHASE_G = '0' else mosi_byte_r(9 downto 1);
+
+
+
+  -- 0,0
+  -- clk_s <= clk_in;
+  -- d1_s  <= mosi_byte_r(9 downto 1);
+  -- d2_s  <= mosi_byte_r(9 downto 1);
+
+  -- 0,1
+  -- clk_s <= not clk_in;
+  -- d1_s  <= mosi_byte_r(9 downto 1);
+  -- d2_s  <= mosi_byte_r(9 downto 1);
+
+  -- 1,0
+  -- clk_s <= clk_in;
+  -- d1_s  <= mosi_byte_r(9 downto 1);
+  -- d2_s  <= mosi_byte_r(9 downto 1);
+
+  -- 1,1
+  -- clk_s <= clk_in;
+  -- d1_s  <= mosi_byte_r(9 downto 1);
+  -- d2_s  <= mosi_byte_r(9 downto 1);
+
+
 
   -----------------------------------------------------------------------------
   -- Two process state machine
@@ -503,11 +574,14 @@ begin
   -- Works for both polarities
   u_mosi: entity work.oddr
     port map(
-      clk => not clk_in, -- phase 1
+      clk => clk_s,
+      -- clk => not clk_in, -- phase 1
       -- clk => clk_in, -- phase 0
       rst => rst_s,
-      d1  => mosi_byte_r(9-to_integer(unsigned(bit_count_r))), -- phase 1
-      d2  => mosi_byte_r(8-to_integer(unsigned(bit_count_r))), -- phase 1
+      d1  => d1_s(8-to_integer(unsigned(bit_count_r))),
+      d2  => d2_s(7-to_integer(unsigned(bit_count_r))),
+      -- d1  => mosi_byte_r(9-to_integer(unsigned(bit_count_r))), -- phase 1
+      -- d2  => mosi_byte_r(8-to_integer(unsigned(bit_count_r))), -- phase 1
       -- d1  => mosi_byte_r(8-to_integer(unsigned(bit_count_r))), -- phase 0
       -- d2  => mosi_byte_r(7-to_integer(unsigned(bit_count_r))), -- phase 0
       q   => mosi

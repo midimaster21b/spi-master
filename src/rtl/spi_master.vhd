@@ -117,58 +117,9 @@ begin
   rst_s     <= '1' when rst_in = RST_LEVEL_G else '0'; -- active high reset
   sclk_en_s <= not CLOCK_POLARITY_G when curr_state_r = TX_STATE else CLOCK_POLARITY_G;
 
-  -- clk_s <= clk_in when CLOCK_PHASE_G = '0' else not clk_in;
-  -- d1_s  <= mosi_byte_r(9 downto 1);
-  -- d2_s  <= mosi_byte_r(9 downto 1);
-
-
-  -- -- Phas, Pol
-  -- -- 0,0 and 0,1
-  -- clk_s <= clk_in;
-  -- d1_s  <= mosi_byte_r(16);
-  -- d2_s  <= mosi_byte_r(15);
-
-  -- -- -- Phas, Pol
-  -- -- -- 1,0 and 1,1
-  -- clk_s <= not clk_in;
-  -- d1_s  <= mosi_byte_r(17);
-  -- d2_s  <= mosi_byte_r(16);
-
-
-  -- Phas, Pol
   clk_s <= clk_in          when CLOCK_PHASE_G = '0' else not clk_in;
   d1_s  <= mosi_byte_r(16) when CLOCK_PHASE_G = '0' else mosi_byte_r(17);
   d2_s  <= mosi_byte_r(15) when CLOCK_PHASE_G = '0' else mosi_byte_r(16);
-
-
-
-
-
-
-
-
-  -- -- Pol, Pha
-  -- -- Not 0,0
-  -- clk_s <= clk_in;
-  -- d1_s  <= mosi_byte_r(9 downto 1);
-  -- d2_s  <= mosi_byte_r(9 downto 1);
-
-  -- -- Finishes 0,0, but doesn't look right (changes on sample edge)
-  -- clk_s <= not clk_in;
-  -- d1_s  <= mosi_byte_r(9 downto 1);
-  -- d2_s  <= mosi_byte_r(9 downto 1);
-
-  -- Second(?) most likely
-  -- -- Fails 0,0 (Needs one more clock cycle at beginning)
-  -- clk_s <= clk_in;
-  -- d1_s  <= mosi_byte_r(8 downto 0);
-  -- d2_s  <= mosi_byte_r(8 downto 0);
-
-  -- -- Fails 0,0 (Changes on sample edge)
-  -- clk_s <= not clk_in;
-  -- d1_s  <= mosi_byte_r(8 downto 0);
-  -- d2_s  <= mosi_byte_r(8 downto 0);
-
 
 
   -----------------------------------------------------------------------------

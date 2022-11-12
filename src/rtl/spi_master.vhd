@@ -381,7 +381,8 @@ begin
 
           elsif(bit_count_r = to_unsigned(0, bit_count_r'length)
              and last_byte_r = '0') then
-            s_axis_tready <= '1';
+            -- s_axis_tready <= '1';
+            s_axis_tready <= '0';
             last_byte_r   <= s_axis_tlast;
             mosi_byte_r(16 downto 0) <= mosi_byte_r(15 downto 0) & "0";
 

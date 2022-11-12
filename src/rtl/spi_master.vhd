@@ -91,7 +91,7 @@ architecture rtl of spi_master is
   signal busy_r             : std_logic                     := '0';
   signal miso_byte_r        : std_logic_vector (7 downto 0) := (others => '0');
   -- signal mosi_byte_r        : std_logic_vector (7 downto 0) := (others => '0');
-  signal mosi_byte_r        : std_logic_vector (8 downto 0) := (others => '0');
+  signal mosi_byte_r        : std_logic_vector (9 downto 0) := (others => '0');
   signal first_bit_r        : std_logic                     := '1';
   signal cs_r               : std_logic                     := '1';
 
@@ -418,7 +418,8 @@ begin
           end if;
 
           last_byte_r   <= s_axis_tlast;
-          mosi_byte_r(8 downto 1)   <= s_axis_tdata;
+          mosi_byte_r(8 downto 1)   <= s_axis_tdata; -- Phase 0
+          -- mosi_byte_r(9 downto 2)   <= s_axis_tdata;
 
         when TX_STATE =>
           -- If not the last byte, get the next byte
@@ -427,7 +428,8 @@ begin
             s_axis_tready <= '1';
             last_byte_r   <= s_axis_tlast;
             -- mosi_byte_r   <= s_axis_tdata;
-            mosi_byte_r(8 downto 1)   <= s_axis_tdata;
+            mosi_byte_r(8 downto 1)   <= s_axis_tdata; -- Phase 0
+            -- mosi_byte_r(9 downto 2)   <= s_axis_tdata;
 
           else
             s_axis_tready <= '0';
@@ -498,12 +500,16 @@ begin
   end process;
 
 
+  -- Works for both polarities
   u_mosi: entity work.oddr
     port map(
-      clk => clk_in,
+      clk => not clk_in, -- phase 1
+      -- clk => clk_in, -- phase 0
       rst => rst_s,
-      d1  => mosi_byte_r(8-to_integer(unsigned(bit_count_r))),
-      d2  => mosi_byte_r(7-to_integer(unsigned(bit_count_r))),
+      d1  => mosi_byte_r(9-to_integer(unsigned(bit_count_r))), -- phase 1
+      d2  => mosi_byte_r(8-to_integer(unsigned(bit_count_r))), -- phase 1
+      -- d1  => mosi_byte_r(8-to_integer(unsigned(bit_count_r))), -- phase 0
+      -- d2  => mosi_byte_r(7-to_integer(unsigned(bit_count_r))), -- phase 0
       q   => mosi
       );
 

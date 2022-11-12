@@ -3,7 +3,7 @@ module spi_master_tb;
    time		 period = 1s/clk_rate;
 
    parameter int CLOCK_POLARITY_G = 0;
-   parameter int CLOCK_PHASE_G    = 0;
+   parameter int CLOCK_PHASE_G    = 1;
    parameter int MSB_FIRST      = 1;
    parameter int RST_LEVEL      = 0;
 
@@ -124,7 +124,7 @@ module spi_master_tb;
 	 // Read MOSI test data
 	 for(int x=0; x<$size(test_mosi_beats); x++) begin
 	    u_spi_slave.get_mosi_byte(temp_byte);
-	    // assert(temp_byte == test_mosi_beats[x]) else $fatal("%t: TB - MOSI - Expected: '%h' Found: '%h'", $time, test_mosi_beats[x], temp_byte);
+	    assert(temp_byte == test_mosi_beats[x]) else $fatal("%t: TB - MOSI - Expected: '%h' Found: '%h'", $time, test_mosi_beats[x], temp_byte);
 
 	 end
 

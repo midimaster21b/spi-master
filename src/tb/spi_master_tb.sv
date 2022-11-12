@@ -3,7 +3,7 @@ module spi_master_tb;
    time		 period = 1s/clk_rate;
 
    parameter int CLOCK_POLARITY_G = 0;
-   parameter int CLOCK_PHASE_G    = 1;
+   parameter int CLOCK_PHASE_G    = 0;
    parameter int MSB_FIRST      = 1;
    parameter int RST_LEVEL      = 0;
 

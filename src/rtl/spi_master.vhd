@@ -90,7 +90,8 @@ architecture rtl of spi_master is
   signal last_byte_r        : std_logic                     := '0';
   signal busy_r             : std_logic                     := '0';
   signal miso_byte_r        : std_logic_vector (7 downto 0) := (others => '0');
-  signal mosi_byte_r        : std_logic_vector (9 downto 0) := (others => '0');
+  signal mosi_byte_r        : std_logic_vector (17 downto 0) := (others => '0');
+  signal mosi_byte_r_1      : std_logic_vector (17 downto 0) := (others => '0');
   signal first_bit_r        : std_logic                     := '1';
   signal cs_r               : std_logic                     := '1';
 
@@ -102,8 +103,10 @@ architecture rtl of spi_master is
   signal rst_s              : std_logic;
 
   signal clk_s              : std_logic;
-  signal d1_s               : std_logic_vector(8 downto 0);
-  signal d2_s               : std_logic_vector(8 downto 0);
+  -- signal d1_s               : std_logic_vector(8 downto 0);
+  -- signal d2_s               : std_logic_vector(8 downto 0);
+  signal d1_s               : std_logic;
+  signal d2_s               : std_logic;
 
 
 begin
@@ -114,9 +117,38 @@ begin
   rst_s     <= '1' when rst_in = RST_LEVEL_G else '0'; -- active high reset
   sclk_en_s <= not CLOCK_POLARITY_G when curr_state_r = TX_STATE else CLOCK_POLARITY_G;
 
-  clk_s <= clk_in when CLOCK_PHASE_G = '0' else not clk_in;
-  d1_s  <= mosi_byte_r(9 downto 1);
-  d2_s  <= mosi_byte_r(9 downto 1);
+  -- clk_s <= clk_in when CLOCK_PHASE_G = '0' else not clk_in;
+  -- d1_s  <= mosi_byte_r(9 downto 1);
+  -- d2_s  <= mosi_byte_r(9 downto 1);
+
+
+  clk_s <= clk_in;
+  d1_s  <= mosi_byte_r(16);
+  d2_s  <= mosi_byte_r(15);
+
+
+  -- -- Pol, Pha
+  -- -- Not 0,0
+  -- clk_s <= clk_in;
+  -- d1_s  <= mosi_byte_r(9 downto 1);
+  -- d2_s  <= mosi_byte_r(9 downto 1);
+
+  -- -- Finishes 0,0, but doesn't look right (changes on sample edge)
+  -- clk_s <= not clk_in;
+  -- d1_s  <= mosi_byte_r(9 downto 1);
+  -- d2_s  <= mosi_byte_r(9 downto 1);
+
+  -- Second(?) most likely
+  -- -- Fails 0,0 (Needs one more clock cycle at beginning)
+  -- clk_s <= clk_in;
+  -- d1_s  <= mosi_byte_r(8 downto 0);
+  -- d2_s  <= mosi_byte_r(8 downto 0);
+
+  -- -- Fails 0,0 (Changes on sample edge)
+  -- clk_s <= not clk_in;
+  -- d1_s  <= mosi_byte_r(8 downto 0);
+  -- d2_s  <= mosi_byte_r(8 downto 0);
+
 
 
   -----------------------------------------------------------------------------
@@ -332,7 +364,8 @@ begin
           end if;
 
           last_byte_r   <= s_axis_tlast;
-          mosi_byte_r(8 downto 1)   <= s_axis_tdata;
+          -- mosi_byte_r(7 downto 0)   <= s_axis_tdata;
+          mosi_byte_r(16 downto 9)   <= s_axis_tdata;
 
         when TX_STATE =>
           -- If not the last byte, get the next byte
@@ -340,12 +373,22 @@ begin
              and last_byte_r = '0') then
             s_axis_tready <= '1';
             last_byte_r   <= s_axis_tlast;
-            mosi_byte_r(8 downto 1)   <= s_axis_tdata;
+            -- mosi_byte_r(7 downto 0)   <= s_axis_tdata;
+
+            mosi_byte_r(16 downto 9)   <= s_axis_tdata;
+            -- mosi_byte_r(15 downto 8)   <= s_axis_tdata;
+            -- mosi_byte_r(14 downto 7)   <= s_axis_tdata;
+
+          elsif(bit_count_r = to_unsigned(0, bit_count_r'length)
+             and last_byte_r = '0') then
+            s_axis_tready <= '1';
+            last_byte_r   <= s_axis_tlast;
+            mosi_byte_r(16 downto 0) <= mosi_byte_r(15 downto 0) & "0";
 
           else
             s_axis_tready <= '0';
             last_byte_r   <= last_byte_r;
-            mosi_byte_r   <= mosi_byte_r;
+            mosi_byte_r(16 downto 0) <= mosi_byte_r(15 downto 0) & "0";
 
           end if;
 
@@ -416,8 +459,10 @@ begin
     port map(
       clk => clk_s,
       rst => rst_s,
-      d1  => d1_s(8-to_integer(unsigned(bit_count_r))),
-      d2  => d2_s(7-to_integer(unsigned(bit_count_r))),
+      -- d1  => d1_s(8-to_integer(unsigned(bit_count_r))),
+      -- d2  => d2_s(7-to_integer(unsigned(bit_count_r))),
+      d1  => d1_s,
+      d2  => d2_s,
       q   => mosi
       );
 

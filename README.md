@@ -20,4 +20,4 @@ Running the simulation:
 
 Running the simulation with parameters:
 
-`fusesoc --cores-root . run --target sim midimaster21b:comm:spi-master:0.1.0 --CLOCK_POLARITY_G 0 --CLOCK_PHASE_G 1`
+`fusesoc --cores-root . run --target sim midimaster21b:comm:spi-master:0.1.1 --CLOCK_POLARITY_G 0 --CLOCK_PHASE_G 1`

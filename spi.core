@@ -8,12 +8,14 @@ filesets:
       - src/rtl/spi_master.vhd
       - src/rtl/spi_master_wrapper.vhd
     file_type: vhdlSource
+    depend:
+    - ==midimaster21b:prim:ddr:0.1.1
 
   tb:
     files:
       - src/tb/spi_master_tb.sv
     file_type: systemVerilogSource
-    depend: [midimaster21b:bfm:axis, midimaster21b:bfm:spi, midimaster21b:comm:amba-interfaces, midimaster21b:prim:ddr]
+    depend: [midimaster21b:bfm:axis, midimaster21b:bfm:spi, midimaster21b:comm:amba-interfaces]
 
 targets:
   # Special FuseSoC target
@@ -22,9 +24,11 @@ targets:
     filesets:
       - rtl
     toplevel: spi_master_wrapper
-    parameters:
-      CLOCK_PHASE_G: 0
-      CLOCK_POLARITY_G: 0
+
+    tools:
+      vivado:
+        pnr: none
+
 
   # Simulation target
   sim:

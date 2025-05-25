@@ -12,6 +12,15 @@ This core currently only has two parameters:
 
 In order to use this core as it is intended, FuseSoC is required to be installed.
 
+1. Install the python dependencies
+
+  `python install -r requirements.txt`
+
+1. Add my [rtl core library](https://github.com/midimaster21b/rtl-core-library)
+
+  `fusesoc library add --sync-type git --global midi-cores https://github.com/midimaster21b/rtl-core-library.git`
+
+
 ### Simulation
 
 Running the simulation:
